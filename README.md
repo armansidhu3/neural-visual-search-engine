@@ -1,21 +1,87 @@
 # Reverse Image Search Engine
 
-Like Google Reverse Image Search, we use embedding, a spatial representation of an image to find related images. We explore various methods and algorithms to automate this on a scale, from thousands to several million images, and make them searchable in microseconds. 
+An image retrieval system that finds visually similar images using deep learning feature extraction and nearest neighbor search. Benchmarks **5 CNN architectures** and **6 search algorithms** on Caltech-101 (8,677 images, 101 categories) and Caltech-256, achieving up to **96% retrieval accuracy** with fine-tuned features and **microsecond-scale** query times via PCA-compressed nearest neighbor search.
 
-## Code
+## Results
 
-1. [1-feature-extraction.ipynb](https://github.com/armansidhu3/Reverse-Image-Search-Engine/blob/master/1_feature_extraction.ipynb): We will extract features from pretrained models like VGG-16, VGG-19, ResNet-50, InceptionV3 and MobileNet and benchmark them using the Caltech101 dataset.
+### Retrieval Accuracy (ResNet-50 Features)
 
-2. [2-similarity-search-level-1.ipynb](https://github.com/armansidhu3/Reverse-Image-Search-Engine/blob/master/2_similarity_search_level_1.ipynb): We write an indexer to index features and search for most similar features using various nearest neighbor algorithms, and explore various methods of visualizing plots.
+| Dataset | Algorithm | Pretrained | Fine-Tuned |
+|---------|-----------|-----------|-----------|
+| Caltech-101 | Brute Force | 87.06% | 89.48% |
+| Caltech-101 | PCA + Brute Force | 87.65% | 89.39% |
+| Caltech-256 | Brute Force | 58.38% | **96.01%** |
+| Caltech-256 | PCA + Brute Force | 56.64% | 95.34% |
 
-3. [2-similarity-search-level-2.ipynb](https://github.com/armansidhu3/Reverse-Image-Search-Engine/blob/master/2_similarity_search_level_2.ipynb): We benchmark the algorithms based on the time it takes to index images and locate the most similar image based on its features using the Caltech-101 dataset. We also experiment with t-SNE and PCA.
+Fine-tuning on Caltech-256 yields a **+37.6% accuracy jump** (58.38% → 96.01%), demonstrating the impact of domain adaptation on retrieval quality.
 
-4. [2-similarity-search-level-3.ipynb](https://github.com/armansidhu3/Reverse-Image-Search-Engine/blob/master/2_similarity_search_level_3.ipynb): So far we experimented with different visualization techniques on the results, t-SNE and PCA on the results. Now we will calculate the accuracies of the features obtained from the pretrained and finetuned models.
+### Fine-Tuning Training Progress (ResNet-50 on Caltech-101)
 
-5. [3-reduce-feature-length-with-pca.ipynb](https://github.com/armansidhu3/Reverse-Image-Search-Engine/blob/master/3_reduce_feature_length_with_pca.ipynb): We will experiment with PCA and figure out what is the optimum length of the features to use in our experiments.
+| Epoch | Loss | Training Accuracy |
+|-------|------|-------------------|
+| 1 | 3.089 | 33.2% |
+| 5 | 1.187 | 67.3% |
+| 10 | 0.884 | 74.1% |
 
-6. [4-improving-accuracy-with-fine-tuning.ipynb](https://github.com/armansidhu3/Reverse-Image-Search-Engine/blob/master/4_improving_accuracy_with_fine_tuning.ipynb): Many of the pre-trained models were trained on the ImageNet dataset. Therefore, they provide an incredible starting point for similarity computations in most situations. If we tune these models to adapt to our specific problem, they would perform even more accurately for finding similar images.
+### Search Algorithms Benchmarked
 
-## Data
+| Algorithm | Type | Library |
+|-----------|------|---------|
+| Brute Force (L2) | Exact | Scikit-Learn |
+| k-d Tree | Exact | Scikit-Learn |
+| Ball Tree | Exact | Scikit-Learn |
+| Annoy | Approximate | Spotify Annoy |
+| HNSW | Approximate | NMSLib |
+| LSH (Cross-Polytope) | Approximate | Falconn |
 
-We will be using the [Caltech101 dataset](http://www.vision.caltech.edu/Image_Datasets/Caltech101/101_ObjectCategories.tar.gz).
+All algorithms benchmarked on both full 2,048-d feature vectors and PCA-compressed 100-d vectors, with timing for single-query and batch (1,000 queries) modes.
+
+## Architecture
+
+```
+Input Image → CNN Feature Extraction → PCA Dimensionality Reduction → Nearest Neighbor Search → Top-K Results
+```
+
+**Feature Extraction:** Extract 2,048-d embeddings from the penultimate layer of pretrained CNNs (ImageNet weights), then optionally fine-tune on the target dataset. Models benchmarked: VGG-16, VGG-19, ResNet-50, InceptionV3, MobileNet.
+
+**Dimensionality Reduction:** PCA compresses 2,048-d → 100-d feature vectors, significantly accelerating search with minimal accuracy loss (87.06% → 87.65% on Caltech-101, slight improvement due to noise reduction).
+
+**Search:** Index all image features and query using exact (brute force, k-d tree, ball tree) and approximate (Annoy, NMSLib HNSW, Falconn LSH) nearest neighbor algorithms.
+
+**Visualization:** t-SNE projections to visualize feature space clustering — shows clear separation improvement after fine-tuning.
+
+## Project Structure
+
+```
+├── 1_feature_extraction.ipynb            # Extract features from 5 pretrained CNNs, fine-tune ResNet-50
+├── 2_similarity_search_level_1.ipynb     # Nearest neighbor search + result visualization
+├── 2_similarity_search_level_2.ipynb     # Benchmark 6 algorithms (index + query timing)
+├── 2_similarity_search_level_3.ipynb     # Calculate retrieval accuracies across datasets
+├── 3_reduce_feature_length_with_pca.ipynb    # PCA optimization experiments
+├── 4_improving_accuracy_with_fine_tuning.ipynb   # Fine-tune CNNs, t-SNE before/after comparison
+└── README.md
+```
+
+## Tech Stack
+
+- **Python**, **TensorFlow/Keras** — CNN feature extraction and fine-tuning
+- **Scikit-Learn** — PCA, brute force, k-d tree, ball tree
+- **Annoy** (Spotify) — Approximate nearest neighbors
+- **NMSLib** — Non-Metric Space Library (HNSW graph-based search)
+- **Falconn** — Locality-sensitive hashing
+- **NumPy**, **Matplotlib** — Data processing and visualization
+
+## Datasets
+
+- [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) — 8,677 images across 101 object categories
+- [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) — 30,607 images across 256 object categories
+
+## Getting Started
+
+```bash
+git clone https://github.com/armansidhu3/Reverse-Image-Search-Engine.git
+cd Reverse-Image-Search-Engine
+pip install -r requirements.txt
+```
+
+Download the Caltech-101 and Caltech-256 datasets, then run the notebooks in order (1 → 2 → 3 → 4).
