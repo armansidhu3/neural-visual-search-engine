@@ -1,0 +1,9 @@
+tensorflow>=2.0
+scikit-learn
+annoy
+nmslib
+falconn
+numpy
+matplotlib
+tqdm
+pillow

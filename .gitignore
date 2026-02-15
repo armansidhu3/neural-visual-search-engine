@@ -1,0 +1,23 @@
+# Data files
+data/
+*.pickle
+*.h5
+*.ann
+
+# Datasets
+datasets/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
