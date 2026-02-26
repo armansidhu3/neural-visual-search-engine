@@ -1,4 +1,4 @@
-# Reverse Image Search Engine
+# Neural Visual Search Engine
 
 An image retrieval system that finds visually similar images using deep learning feature extraction and nearest neighbor search. Benchmarks **5 CNN architectures** and **6 search algorithms** on Caltech-101 (8,677 images, 101 categories) and Caltech-256, achieving up to **96% retrieval accuracy** with fine-tuned features and **microsecond-scale** query times via PCA-compressed nearest neighbor search.
 
@@ -79,8 +79,8 @@ Input Image → CNN Feature Extraction → PCA Dimensionality Reduction → Near
 ## Getting Started
 
 ```bash
-git clone https://github.com/armansidhu3/Reverse-Image-Search-Engine.git
-cd Reverse-Image-Search-Engine
+git clone https://github.com/armansidhu3/neural-visual-search-engine.git
+cd neural-visual-search-engine
 pip install -r requirements.txt
 ```
 
